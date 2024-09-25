@@ -1,5 +1,40 @@
 canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-};
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.accerate-button {
+  font-size: 18px;
+  width: 150px;
+  height: 60px;
+  padding: 10px 20px;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: #ffff00; // yellow
+  border: 2px solid black;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.accerate-button:hover {
+  transform: translateY(-5px);
+  transition: transform 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.accerate-button:active {
+  transform: translateY(2px);
+  transition: transform 0.1s ease;
+  background-color: #cccc00; /* Darker yellow when clicked */
+}
+
+.accerate-button:not(:hover) {
+  transform: translateY(0);
+  box-shadow: none;
+}
