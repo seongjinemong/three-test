@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "node app",
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "three": "^0.153.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.168.0"
+  }
+}
