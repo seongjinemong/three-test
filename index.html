@@ -20,9 +20,15 @@
 		</script>
 	</head>
 	<body>
-		<button class="accerate-button">Rev</button>
+		<button class="accerate-button" onmousedown="window.rev()" onmouseup="window.unrev()">Rev</button>
 		<!-- Canvas is necessary to hold a scene  -->
 		<canvas id="background"></canvas>
+		<script type="module">
+			import { rev, unrev } from '/public/src/main.js';
+			window.rev = rev;
+			window.unrev = unrev;
+		</script>
 		<script type="module" src="/public/src/main.js"></script>
+
 	</body>
 </html>

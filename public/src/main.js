@@ -2,6 +2,18 @@ import * as THREE from "three";
 import { LoadGLTFByPath } from "./Helpers/ModelHelper.js";
 import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
 
+let isRev = false;
+
+export function rev() {
+  isRev = true;
+  console.log(isRev);
+}
+
+export function unrev() {
+  isRev = false;
+  console.log(isRev);
+}
+
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
   //Defines the canvas component in the DOM that will be used
@@ -171,7 +183,7 @@ function animate() {
     for (let i = 0; i < positions.length; i += 3) {
       positions[i] += positions_init[i * 2] * 0.002; // Move particles in positive x direction
       positions[i + 1] += positions_init[i * 2 + 1] * 0.002; // Move particles in positive y direction
-      positions[i + 2] -= 0.003; // Move particles in positive z direction
+      positions[i + 2] -= 0.003 * (isRev ? 2.0 : 1.0); // Move particles in positive z direction
 
       // Reset particles that go too far in x direction
       if (positions[i + 2] < -0.5) {
