@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { LoadGLTFByPath } from "./Helpers/ModelHelper.js";
-import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
+//import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
 
 let isRev = false;
 
@@ -14,14 +14,16 @@ export function unrev() {
   console.log(isRev);
 }
 
+const canvas = document.querySelector("#background");
+
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
   //Defines the canvas component in the DOM that will be used
-  canvas: document.querySelector("#background"),
+  canvas: canvas,
   antialias: true,
 });
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
 //set up the renderer with the default settings for threejs.org/editor - revision r153
 renderer.shadows = true;
@@ -38,18 +40,20 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 // Variables for smoke particles
 let positions_init;
+let positions_count;
+let positions_moverate;
 
 const scene = new THREE.Scene();
 
 // background color black
 scene.background = new THREE.Color(0, 0, 0);
 
-// Add a box on 0,1,0
-const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-const box = new THREE.Mesh(boxGeometry, boxMaterial);
-box.position.set(0, 0.3, -2.3);
-scene.add(box);
+// Box for knowing position
+// const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+// const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+// const box = new THREE.Mesh(boxGeometry, boxMaterial);
+// box.position.set(0, 0.3, -2.3);
+// scene.add(box);
 
 // Add floor
 const floorSize = 50;
@@ -96,14 +100,14 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 floor.receiveShadow = true;
 
 let camera;
-let controls;
+//let controls;
 let smokeParticles; // Add this line
 
 // Load the GLTF model
 LoadGLTFByPath(scene)
   .then(() => {
     setupCamera();
-    setupOrbitControls();
+    //setupOrbitControls();
     createExhaustSmoke(); // Add this line
     animate();
   })
@@ -113,49 +117,46 @@ LoadGLTFByPath(scene)
 
 function setupCamera() {
   camera = new THREE.PerspectiveCamera(
-    50,
+    30,
     window.innerWidth / window.innerHeight,
     1,
     1000
   );
-  camera.position.set(0, 2, -5);
+  camera.position.set(1.4, 1.5, -3.7);
+
+  camera.lookAt(0, 0.5, -2.7);
+  
   updateCameraAspect(camera);
 }
 
-function setupOrbitControls() {
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 1, 0); // Set the orbit center to the car's position
-  controls.update();
+// function setupOrbitControls() {
+//   controls = new OrbitControls(camera, renderer.domElement);
+//   controls.target.set(0, 1, 0); // Set the orbit center to the car's position
+//   controls.update();
 
-  // Optionally, you can set constraints on the controls
-  controls.minDistance = 2;
-  controls.maxDistance = 10;
-  controls.minPolarAngle = Math.PI / 6; // 30 degrees
-  controls.maxPolarAngle = Math.PI / 2; // 90 degrees
-}
+//   // Optionally, you can set constraints on the controls
+//   controls.minDistance = 2;
+//   controls.maxDistance = 10;
+//   controls.minPolarAngle = Math.PI / 6; // 30 degrees
+//   controls.maxPolarAngle = Math.PI / 2; // 90 degrees
+// }
 
-// Add this new function
+// Update this function
 function createExhaustSmoke() {
-  const smokeTexture = new THREE.TextureLoader().load(
-    "/public/models/textures/smoke/smoke_texture.png"
-  );
-  const smokeMaterial = new THREE.PointsMaterial({
-    size: 0.1,
-    map: smokeTexture,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    transparent: true,
-    opacity: 0.7,
-  });
-
-  const particleCount = 1000;
+  const particleCount = 200;
   const particles = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   positions_init = new Float32Array(particleCount * 2);
+  positions_count = new Float32Array(particleCount);
+  positions_moverate = new Float32Array(particleCount);
 
   for (let i = 0; i < particleCount; i++) {
     positions_init[i * 2] = Math.random() - 0.5;
     positions_init[i * 2 + 1] = Math.random() - 0.5;
+
+    positions_count[i] = i;
+
+    positions_moverate[i] = 0.003;
   }
 
   for (let i = 0; i < particleCount; i++) {
@@ -165,52 +166,99 @@ function createExhaustSmoke() {
   }
 
   particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  smokeParticles = new THREE.Points(particles, smokeMaterial);
+
+  // Create a small sphere geometry for smoke particles
+  const sphereGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+  const smokeMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.7,
+  });
+
+  smokeParticles = new THREE.InstancedMesh(
+    sphereGeometry,
+    smokeMaterial,
+    particleCount
+  );
+  smokeParticles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+  // Set initial positions for instanced spheres
+  const matrix = new THREE.Matrix4();
+  for (let i = 0; i < particleCount; i++) {
+    matrix.setPosition(
+      positions[i * 3],
+      positions[i * 3 + 1],
+      positions[i * 3 + 2]
+    );
+    smokeParticles.setMatrixAt(i, matrix);
+  }
 
   // Adjust the position to match your car's exhaust location
-  smokeParticles.position.set(0, 0.3, -2.3); // Example position, adjust as needed
+  smokeParticles.position.set(0, 0.25, -2.30); // Example position, adjust as needed
   scene.add(smokeParticles);
 }
 
 // Update the animate function
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
+  // controls.update();
 
   // Add this block to animate the smoke
   if (smokeParticles) {
-    const positions = smokeParticles.geometry.attributes.position.array;
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += positions_init[i * 2] * 0.002; // Move particles in positive x direction
-      positions[i + 1] += positions_init[i * 2 + 1] * 0.002; // Move particles in positive y direction
-      positions[i + 2] -= 0.003 * (isRev ? 2.0 : 1.0); // Move particles in positive z direction
+    const matrix = new THREE.Matrix4();
+    const color = new THREE.Color();
 
-      // Reset particles that go too far in x direction
-      if (positions[i + 2] < -0.5) {
-        positions[i] = positions_init[i * 2] * 0.01;
-        positions[i + 1] = positions_init[i * 2 + 1] * 0.01;
-        positions[i + 2] = 0; // Reset to the left side
+    for (let i = 0; i < smokeParticles.count; i++) {
+      positions_count[i] += 1;
+      smokeParticles.getMatrixAt(i, matrix);
+      const position = new THREE.Vector3().setFromMatrixPosition(matrix);
+
+      position.x += positions_init[i * 2] * 0.002;
+      position.y += positions_init[i * 2 + 1] * 0.002 + -1 * position.z * 0.003;
+      position.z -= positions_moverate[i];
+
+      // Set particle's opacity
+      let opacity =
+        (positions_count.length - positions_count[i]) / positions_count.length;
+      color.setHex(0xffffff);
+      color.multiplyScalar(opacity);
+      smokeParticles.setColorAt(i, color);
+
+      // Reset particles that go too far in z direction
+      if (positions_count[i] > positions_count.length) {
+        positions_count[i] = 0;
+        position.x = positions_init[i * 2] * 0.01;
+        position.y = positions_init[i * 2 + 1] * 0.01;
+        position.z = 0; // Reset to the starting point
+
+        positions_moverate[i] = !isRev
+          ? 0.002 + Math.random() * 0.002
+          : 0.004 + Math.random() * 0.002;
       }
+
+      matrix.setPosition(position);
+      smokeParticles.setMatrixAt(i, matrix);
     }
-    smokeParticles.geometry.attributes.position.needsUpdate = true;
+    smokeParticles.instanceMatrix.needsUpdate = true;
+    smokeParticles.instanceColor.needsUpdate = true;
   }
 
   renderer.render(scene, camera);
 }
 
 // Add an event listener for window resizing
-window.addEventListener("resize", onWindowResize, false);
+// window.addEventListener("resize", onWindowResize, false);
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+// function onWindowResize() {
+//   camera.aspect = window.innerWidth / window.innerHeight;
+//   camera.updateProjectionMatrix();
+//   renderer.setSize(window.innerWidth, window.innerHeight);
+// }
 
-// Set the camera aspect ratio to match the browser window dimensions
+// // Set the camera aspect ratio to match the browser window dimensions
 function updateCameraAspect(camera) {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
 }

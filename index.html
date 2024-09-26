@@ -1,34 +1,40 @@
 <!DOCTYPE html>
 <html>
-	<link rel="stylesheet" type="text/css" href="/public/src/style.css">
-	<head lang="en">
-		<meta charset="utf-8">
-		<title>My first three.js app</title>
-		<style>
-			body { margin: 0; }
-		</style>
-		<!-- 
+  <link rel="stylesheet" type="text/css" href="/public/src/style.css" />
+  <head lang="en">
+    <meta charset="utf-8" />
+    <title>My first three.js app</title>
+    <style></style>
+    <!-- 
 			Import map is not available in all browsers.
 			This is necessary to serve the three path so that other imports can access it. 
 		-->
-		<script type="importmap">
-			{
-				"imports": {
-					"three": "./node_modules/three/build/three.module.js"
-				}
-			}
-		</script>
-	</head>
-	<body>
-		<button class="accerate-button" onmousedown="window.rev()" onmouseup="window.unrev()">Rev</button>
-		<!-- Canvas is necessary to hold a scene  -->
-		<canvas id="background"></canvas>
-		<script type="module">
-			import { rev, unrev } from '/public/src/main.js';
-			window.rev = rev;
-			window.unrev = unrev;
-		</script>
-		<script type="module" src="/public/src/main.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./node_modules/three/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Canvas is necessary to hold a scene  -->
+    <div class="container">
+      <canvas id="background"></canvas>
+      <button
+        class="accerate-button"
+        onmousedown="window.rev()"
+        onmouseup="window.unrev()"
+      >
+        REV
+      </button>
+    </div>
 
-	</body>
+    <script type="module">
+      import { rev, unrev } from "/public/src/main.js";
+      window.rev = rev;
+      window.unrev = unrev;
+    </script>
+    <script type="module" src="/public/src/main.js"></script>
+  </body>
 </html>
