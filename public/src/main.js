@@ -24,10 +24,20 @@ renderer.setClearColor(0xffffff, 0);
 //make sure three/build/three.module.js is over r152 or this feature is not available.
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+// Variables for smoke particles
+let positions_init;
+
 const scene = new THREE.Scene();
 
 // background color black
-//scene.background = new THREE.Color(0, 0, 0);
+scene.background = new THREE.Color(0, 0, 0);
+
+// Add a box on 0,1,0
+const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+const box = new THREE.Mesh(boxGeometry, boxMaterial);
+box.position.set(0, 0.3, -2.3);
+scene.add(box);
 
 // Add floor
 const floorSize = 50;
@@ -129,11 +139,17 @@ function createExhaustSmoke() {
   const particleCount = 1000;
   const particles = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
+  positions_init = new Float32Array(particleCount * 2);
 
   for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = Math.random() - 0.05; // x
-    positions[i * 3 + 1] = Math.random(); // y
-    positions[i * 3 + 2] = Math.random() - 0.05; // z
+    positions_init[i * 2] = Math.random() - 0.5;
+    positions_init[i * 2 + 1] = Math.random() - 0.5;
+  }
+
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = positions_init[i * 2] * 0.01; // x
+    positions[i * 3 + 1] = positions_init[i * 2 + 1] * 0.01; // y
+    positions[i * 3 + 2] = Math.random() * -0.5; // z
   }
 
   particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -153,11 +169,15 @@ function animate() {
   if (smokeParticles) {
     const positions = smokeParticles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3) {
-      positions[i + 1] += 0.003; // Move particles upward
+      positions[i] += positions_init[i * 2] * 0.002; // Move particles in positive x direction
+      positions[i + 1] += positions_init[i * 2 + 1] * 0.002; // Move particles in positive y direction
+      positions[i + 2] -= 0.003; // Move particles in positive z direction
 
-      // Reset particles that go too high
-      if (positions[i + 1] > 1) {
-        positions[i + 1] = 0;
+      // Reset particles that go too far in x direction
+      if (positions[i + 2] < -0.5) {
+        positions[i] = positions_init[i * 2] * 0.01;
+        positions[i + 1] = positions_init[i * 2 + 1] * 0.01;
+        positions[i + 2] = 0; // Reset to the left side
       }
     }
     smokeParticles.geometry.attributes.position.needsUpdate = true;
