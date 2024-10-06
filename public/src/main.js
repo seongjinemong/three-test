@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { LoadGLTFByPath } from "./Helpers/ModelHelper.js";
-//import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
 import { setRevBar } from "./lib/revbar.js";
 
 let isRev = false;
@@ -10,22 +9,24 @@ let max_rev = 0.007;
 
 export function rev() {
   isRev = true;
-  console.log(isRev);
+  //console.log(isRev);
 }
 
 export function unrev() {
   isRev = false;
-  console.log(isRev);
+  //console.log(isRev);
 }
 
+// Controls revving
 function rrev() {
   // rev control
   if (isRev && rev_counter < max_rev) {
-    rev_counter += 0.00007;
+    rev_counter += 0.00002;
   } else if (!isRev && rev_counter > 0.002) {
-    rev_counter -= 0.00002;
+    rev_counter -= 0.00001;
   }
 
+  // setRevBar to current rev
   setRevBar("myBar", (rev_counter - 0.002) / (max_rev - 0.002) * 100);
 }
 
@@ -33,7 +34,6 @@ const canvas = document.querySelector("#background");
 
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
-  //Defines the canvas component in the DOM that will be used
   canvas: canvas,
   antialias: true,
 });
@@ -57,6 +57,7 @@ let positions_init;
 let positions_count;
 let positions_moverate;
 
+// Make a new Scene
 const scene = new THREE.Scene();
 
 // background color black
@@ -85,27 +86,6 @@ const light = new THREE.HemisphereLight(0xffffff, 0x080820, 1);
 light.position.set(1, 5, 1);
 scene.add(light);
 
-// const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-// scene.add(ambientLight);
-
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-// directionalLight.position.set(5, 10, 7.5);
-// directionalLight.castShadow = true;
-// scene.add(directionalLight);
-
-// // Adjust shadow properties for better quality
-// directionalLight.shadow.mapSize.width = 2048;
-// directionalLight.shadow.mapSize.height = 2048;
-// directionalLight.shadow.camera.near = 1;
-// directionalLight.shadow.camera.far = 50;
-
-// // Add a helper to visualize the light direction (optional, remove in production)
-// const directionalLightHelper = new THREE.DirectionalLightHelper(
-//   directionalLight,
-//   5
-// );
-// scene.add(directionalLightHelper);
-
 // Enable shadow rendering on the renderer
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -114,15 +94,13 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 floor.receiveShadow = true;
 
 let camera;
-//let controls;
-let smokeParticles; // Add this line
+let smokeParticles;
 
 // Load the GLTF model
 LoadGLTFByPath(scene)
   .then(() => {
     setupCamera();
-    //setupOrbitControls();
-    createExhaustSmoke(); // Add this line
+    createExhaustSmoke();
     addRearLightGlow();
     animate();
   })
@@ -145,49 +123,13 @@ function setupCamera() {
 }
 
 function addRearLightGlow() {
-  const rearLight = scene.getObjectByName("TwiXeR_992_fascia_glass");
-
-  if (!rearLight) {
-    console.error(
-      "Rear light mesh (TwiXeR_992_fascia_glass) not found in the model"
-    );
-    return;
-  }
-
-  // Create a glowing material for the rear light
-  const glowMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff0000,
-    emissive: 0xff0000,
-    emissiveIntensity: 1,
-    transparent: true,
-    opacity: 0.5,
-  });
-
-  // Apply the glowing material to the rear light mesh
-  rearLight.material = glowMaterial;
-
   // Create a point light to enhance the glow effect
-  const rearLightPoint = new THREE.PointLight(0xff0000, 1, 2);
+  const rearLightPoint = new THREE.PointLight(0xff0000, 6, 10);
   rearLightPoint.position.set(0, 0.74, -2.1);
   scene.add(rearLightPoint);
-
-  console.log("red light set!");
-  console.log("rearLight position", rearLight.position);
 }
 
-function setupOrbitControls() {
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 1, 0); // Set the orbit center to the car's position
-  controls.update();
-
-  // Optionally, you can set constraints on the controls
-  controls.minDistance = 2;
-  controls.maxDistance = 10;
-  controls.minPolarAngle = Math.PI / 6; // 30 degrees
-  controls.maxPolarAngle = Math.PI / 2; // 90 degrees
-}
-
-// Update this function
+// Creates exhause smoke(init)
 function createExhaustSmoke() {
   const particleCount = 200;
   const particles = new THREE.BufferGeometry();
@@ -205,6 +147,7 @@ function createExhaustSmoke() {
     positions_moverate[i] = 0.003;
   }
 
+  // Make smoke spread randomly
   for (let i = 0; i < particleCount; i++) {
     positions[i * 3] = positions_init[i * 2] * 0.01; // x
     positions[i * 3 + 1] = positions_init[i * 2 + 1] * 0.01; // y
@@ -244,13 +187,11 @@ function createExhaustSmoke() {
   scene.add(smokeParticles);
 }
 
-// Update the animate function
+// Runs in every frame
 function animate() {
   requestAnimationFrame(animate);
-  // controls.update();
 
   rrev();
-  //console.log(rev_counter);
 
   // Add this block to animate the smoke
   if (smokeParticles) {
@@ -262,6 +203,7 @@ function animate() {
       smokeParticles.getMatrixAt(i, matrix);
       const position = new THREE.Vector3().setFromMatrixPosition(matrix);
 
+      // Sets new positions for each smoke
       position.x += positions_init[i * 2] * 0.002;
       position.y += positions_init[i * 2 + 1] * 0.002 + -1 * position.z * 0.003;
       position.z -= positions_moverate[i];
@@ -280,10 +222,6 @@ function animate() {
         position.y = positions_init[i * 2 + 1] * 0.01;
         position.z = 0; // Reset to the starting point
 
-        // positions_moverate[i] = !isRev
-        //   ? 0.002 + Math.random() * 0.002
-        //   : 0.004 + Math.random() * 0.002;
-
         positions_moverate[i] = rev_counter + Math.random() * 0.002;
       }
 
@@ -297,16 +235,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// Add an event listener for window resizing
-// window.addEventListener("resize", onWindowResize, false);
-
-// function onWindowResize() {
-//   camera.aspect = window.innerWidth / window.innerHeight;
-//   camera.updateProjectionMatrix();
-//   renderer.setSize(window.innerWidth, window.innerHeight);
-// }
-
-// // Set the camera aspect ratio to match the browser window dimensions
+// Set the camera aspect ratio to match the browser window dimensions
 function updateCameraAspect(camera) {
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;

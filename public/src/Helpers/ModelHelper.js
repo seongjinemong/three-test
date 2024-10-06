@@ -1,4 +1,3 @@
-import * as THREE from 'three'
 import { GLTFLoader } from '/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
 const scenePath = '/public/models/scene.gltf'
@@ -13,11 +12,12 @@ export const LoadGLTFByPath = (scene) => {
 
         scene.add(gltf.scene);
 
-        console.log("All object names:");
-        gltf.scene.traverse((object) => {
-          if(object.name.includes("fascia"))
-          console.log(object.name);
-        });
+        // Check for specific Object
+        // console.log("All object names:");
+        // gltf.scene.traverse((object) => {
+        //   if(object.name.includes("fascia"))
+        //   console.log(object.name);
+        // });
 
         resolve();
       }, undefined, (error) => {
