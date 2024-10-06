@@ -1,6 +1,8 @@
-# Exhaust Three.js Example
+# 🚗💨 3D Exhaust Control
 
-This project demonstrates a 3D car exhaust simulation using Three.js. It features a realistic exhaust smoke effect that responds to user input, creating an interactive and visually appealing experience.
+평소에 차를 좋아하는 만든이의 의식의 흐름에 따라 그저 차의 배기를 웹에서 3D로 만들어보고 싶다는 생각에서 시작되어 가속 페달을 밟듯 버튼을 지긋이 누르면, 내연기관의 RPM이 올라가듯 Progressbar가 차오르고, 배기구에서 연기가 모락모락 나게 됩니다. 가격대가 높은 차들의 가속페달을 마음대로 밟을 수 없는 것에 대한 한이 깃들어있는 프로젝트입니다.
+
+It starts with the idea of just trying to make the exhaust of the car 3D on the web according to the flow of consciousness of the creator who likes cars, and if you press the button as if you are press on the gas, the Progressbar rises like the RPM of the combustion engine goes up, and smoke comes out of the exhaust pipes. It is a project about the inability to step on the gas of expensive cars at will.
 
 ## Features
 
