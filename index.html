@@ -3,15 +3,7 @@
   <head lang="en">
     <meta charset="utf-8" />
     <link href="./public/src/style.css" rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="./public/src/lib/loading-bar.css"
-    />
-    <script
-      type="text/javascript"
-      src="./public/src/lib/loading-bar.js"
-    ></script>
+    
     <title>Exhuast Three Example</title>
     <!-- 
 			Import map is not available in all browsers.
@@ -29,14 +21,21 @@
     <!-- Canvas is necessary to hold a scene  -->
     <div class="container">
       <canvas id="background"></canvas>
-      <div class="ldBar" id="revBar" data-value="50"></div>
-      <button
-        class="accerate-button"
-        onmousedown="window.rev()"
-        onmouseup="window.unrev()"
-      >
-        REV
-      </button>
+
+      <div class="bottombar">
+        <div id="myProgress">
+          <div id="myBar"></div>
+        </div>
+
+        <button
+          class="accerate-button"
+          onmousedown="window.rev()"
+          onmouseup="window.unrev()"
+          onmouseleave="window.unrev()"
+        >
+          REV
+        </button>
+      </div>
     </div>
 
     <script type="module">

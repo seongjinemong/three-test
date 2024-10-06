@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import { LoadGLTFByPath } from "./Helpers/ModelHelper.js";
-import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
-
-var revbar = new ldBar("#revBar");
+//import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
+import { setRevBar } from "./lib/revbar.js";
 
 let isRev = false;
 // 0.002 ~ 0.007
@@ -27,7 +26,7 @@ function rrev() {
     rev_counter -= 0.00002;
   }
 
-  revbar.set(((rev_counter - 0.002) / (max_rev - 0.002)) * 100);
+  setRevBar("myBar", (rev_counter - 0.002) / (max_rev - 0.002) * 100);
 }
 
 const canvas = document.querySelector("#background");
@@ -115,14 +114,14 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 floor.receiveShadow = true;
 
 let camera;
-let controls;
+//let controls;
 let smokeParticles; // Add this line
 
 // Load the GLTF model
 LoadGLTFByPath(scene)
   .then(() => {
     setupCamera();
-    setupOrbitControls();
+    //setupOrbitControls();
     createExhaustSmoke(); // Add this line
     addRearLightGlow();
     animate();
@@ -133,12 +132,12 @@ LoadGLTFByPath(scene)
 
 function setupCamera() {
   camera = new THREE.PerspectiveCamera(
-    30,
+    10,
     window.innerWidth / window.innerHeight,
     1,
-    1000
+    750
   );
-  camera.position.set(1.4, 1.5, -3.7);
+  camera.position.set(8, 6, -8);
 
   camera.lookAt(0, 0.5, -2.7);
 
