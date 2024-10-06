@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html>
-  <link rel="stylesheet" type="text/css" href="/public/src/style.css" />
   <head lang="en">
     <meta charset="utf-8" />
-    <title>My first three.js app</title>
-    <style></style>
+    <link href="./public/src/style.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./public/src/lib/loading-bar.css"
+    />
+    <script
+      type="text/javascript"
+      src="./public/src/lib/loading-bar.js"
+    ></script>
+    <title>Exhuast Three Example</title>
     <!-- 
 			Import map is not available in all browsers.
 			This is necessary to serve the three path so that other imports can access it. 
@@ -21,6 +29,7 @@
     <!-- Canvas is necessary to hold a scene  -->
     <div class="container">
       <canvas id="background"></canvas>
+      <div class="ldBar" id="revBar" data-value="50"></div>
       <button
         class="accerate-button"
         onmousedown="window.rev()"

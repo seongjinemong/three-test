@@ -13,9 +13,17 @@ export const LoadGLTFByPath = (scene) => {
 
         scene.add(gltf.scene);
 
+        console.log("All object names:");
+        gltf.scene.traverse((object) => {
+          if(object.name.includes("fascia"))
+          console.log(object.name);
+        });
+
         resolve();
       }, undefined, (error) => {
         reject(error);
       });
+
+
     });
 };

@@ -1,8 +1,13 @@
 import * as THREE from "three";
 import { LoadGLTFByPath } from "./Helpers/ModelHelper.js";
-//import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
+import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
+
+var revbar = new ldBar("#revBar");
 
 let isRev = false;
+// 0.002 ~ 0.007
+let rev_counter = 0.002;
+let max_rev = 0.007;
 
 export function rev() {
   isRev = true;
@@ -12,6 +17,17 @@ export function rev() {
 export function unrev() {
   isRev = false;
   console.log(isRev);
+}
+
+function rrev() {
+  // rev control
+  if (isRev && rev_counter < max_rev) {
+    rev_counter += 0.00007;
+  } else if (!isRev && rev_counter > 0.002) {
+    rev_counter -= 0.00002;
+  }
+
+  revbar.set(((rev_counter - 0.002) / (max_rev - 0.002)) * 100);
 }
 
 const canvas = document.querySelector("#background");
@@ -35,7 +51,6 @@ renderer.toneMappingExposure = 1;
 renderer.useLegacyLights = false;
 renderer.toneMapping = THREE.NoToneMapping;
 renderer.setClearColor(0xffffff, 0);
-//make sure three/build/three.module.js is over r152 or this feature is not available.
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 // Variables for smoke particles
@@ -49,17 +64,17 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0, 0, 0);
 
 // Box for knowing position
-// const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-// const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-// const box = new THREE.Mesh(boxGeometry, boxMaterial);
-// box.position.set(0, 0.3, -2.3);
-// scene.add(box);
+const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+const box = new THREE.Mesh(boxGeometry, boxMaterial);
+box.position.set(0, 0.74, -2.1);
+scene.add(box);
 
 // Add floor
 const floorSize = 50;
 const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
 
-const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x303030 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
 floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
@@ -68,29 +83,29 @@ scene.add(floor);
 
 // Set Lighting
 const light = new THREE.HemisphereLight(0xffffff, 0x080820, 1);
-light.position.set(1, 2, 1);
+light.position.set(1, 5, 1);
 scene.add(light);
 
 // const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 // scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(5, 10, 7.5);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+// directionalLight.position.set(5, 10, 7.5);
+// directionalLight.castShadow = true;
+// scene.add(directionalLight);
 
-// Adjust shadow properties for better quality
-directionalLight.shadow.mapSize.width = 2048;
-directionalLight.shadow.mapSize.height = 2048;
-directionalLight.shadow.camera.near = 1;
-directionalLight.shadow.camera.far = 50;
+// // Adjust shadow properties for better quality
+// directionalLight.shadow.mapSize.width = 2048;
+// directionalLight.shadow.mapSize.height = 2048;
+// directionalLight.shadow.camera.near = 1;
+// directionalLight.shadow.camera.far = 50;
 
-// Add a helper to visualize the light direction (optional, remove in production)
-const directionalLightHelper = new THREE.DirectionalLightHelper(
-  directionalLight,
-  5
-);
-scene.add(directionalLightHelper);
+// // Add a helper to visualize the light direction (optional, remove in production)
+// const directionalLightHelper = new THREE.DirectionalLightHelper(
+//   directionalLight,
+//   5
+// );
+// scene.add(directionalLightHelper);
 
 // Enable shadow rendering on the renderer
 renderer.shadowMap.enabled = true;
@@ -100,15 +115,16 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 floor.receiveShadow = true;
 
 let camera;
-//let controls;
+let controls;
 let smokeParticles; // Add this line
 
 // Load the GLTF model
 LoadGLTFByPath(scene)
   .then(() => {
     setupCamera();
-    //setupOrbitControls();
+    setupOrbitControls();
     createExhaustSmoke(); // Add this line
+    addRearLightGlow();
     animate();
   })
   .catch((error) => {
@@ -125,21 +141,52 @@ function setupCamera() {
   camera.position.set(1.4, 1.5, -3.7);
 
   camera.lookAt(0, 0.5, -2.7);
-  
+
   updateCameraAspect(camera);
 }
 
-// function setupOrbitControls() {
-//   controls = new OrbitControls(camera, renderer.domElement);
-//   controls.target.set(0, 1, 0); // Set the orbit center to the car's position
-//   controls.update();
+function addRearLightGlow() {
+  const rearLight = scene.getObjectByName("TwiXeR_992_fascia_glass");
 
-//   // Optionally, you can set constraints on the controls
-//   controls.minDistance = 2;
-//   controls.maxDistance = 10;
-//   controls.minPolarAngle = Math.PI / 6; // 30 degrees
-//   controls.maxPolarAngle = Math.PI / 2; // 90 degrees
-// }
+  if (!rearLight) {
+    console.error(
+      "Rear light mesh (TwiXeR_992_fascia_glass) not found in the model"
+    );
+    return;
+  }
+
+  // Create a glowing material for the rear light
+  const glowMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff0000,
+    emissive: 0xff0000,
+    emissiveIntensity: 1,
+    transparent: true,
+    opacity: 0.5,
+  });
+
+  // Apply the glowing material to the rear light mesh
+  rearLight.material = glowMaterial;
+
+  // Create a point light to enhance the glow effect
+  const rearLightPoint = new THREE.PointLight(0xff0000, 1, 2);
+  rearLightPoint.position.set(0, 0.74, -2.1);
+  scene.add(rearLightPoint);
+
+  console.log("red light set!");
+  console.log("rearLight position", rearLight.position);
+}
+
+function setupOrbitControls() {
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 1, 0); // Set the orbit center to the car's position
+  controls.update();
+
+  // Optionally, you can set constraints on the controls
+  controls.minDistance = 2;
+  controls.maxDistance = 10;
+  controls.minPolarAngle = Math.PI / 6; // 30 degrees
+  controls.maxPolarAngle = Math.PI / 2; // 90 degrees
+}
 
 // Update this function
 function createExhaustSmoke() {
@@ -194,7 +241,7 @@ function createExhaustSmoke() {
   }
 
   // Adjust the position to match your car's exhaust location
-  smokeParticles.position.set(0, 0.25, -2.30); // Example position, adjust as needed
+  smokeParticles.position.set(0, 0.25, -2.3); // Example position, adjust as needed
   scene.add(smokeParticles);
 }
 
@@ -202,6 +249,9 @@ function createExhaustSmoke() {
 function animate() {
   requestAnimationFrame(animate);
   // controls.update();
+
+  rrev();
+  //console.log(rev_counter);
 
   // Add this block to animate the smoke
   if (smokeParticles) {
@@ -231,9 +281,11 @@ function animate() {
         position.y = positions_init[i * 2 + 1] * 0.01;
         position.z = 0; // Reset to the starting point
 
-        positions_moverate[i] = !isRev
-          ? 0.002 + Math.random() * 0.002
-          : 0.004 + Math.random() * 0.002;
+        // positions_moverate[i] = !isRev
+        //   ? 0.002 + Math.random() * 0.002
+        //   : 0.004 + Math.random() * 0.002;
+
+        positions_moverate[i] = rev_counter + Math.random() * 0.002;
       }
 
       matrix.setPosition(position);
